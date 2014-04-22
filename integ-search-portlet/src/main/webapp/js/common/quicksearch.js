@@ -434,7 +434,7 @@ window.initQuickSearch = function initQuickSearch(portletId,seeAllMsg, noResultM
     	  }else if (window['isSearching']){    	  	 
           
 	          var query = $(txtQuickSearchQuery_id).val();
-	          var types = QUICKSEARCH_SETTING.searchTypes.join(","); //search for the types specified in quick search setting only
+	          searchTypes = QUICKSEARCH_SETTING.searchTypes.join(","); //search for the types specified in quick search setting only
 	
 	          var searchParams = {
 	            searchContext: {
@@ -442,14 +442,13 @@ window.initQuickSearch = function initQuickSearch(portletId,seeAllMsg, noResultM
 	            },
 	            q: query,
 	            sites: QUICKSEARCH_SETTING.searchCurrentSiteOnly ? eXo.env.portal.portalName : "all",
-	            types: types,
+	            types: searchTypes,
 	            offset: 0,
 	            limit: QUICKSEARCH_SETTING.resultsPerPage,
 	            sort: "relevancy",
 	            order: "desc"
 	          };          
-	          var searchPage = "/portal/"+eXo.env.portal.portalName+"/search";
-	          $(linkQuickSearchQuery_id).attr("onclick","window.location.href='"+searchPage +"?q="+query+"&types="+types+"'");
+	          $(linkQuickSearchQuery_id).attr("onclick","window.location.href='"+searchPage +"?q="+query+"&types="+searchTypes+"'");
 	          window['isSearching'] = false;
     	  }
       }
