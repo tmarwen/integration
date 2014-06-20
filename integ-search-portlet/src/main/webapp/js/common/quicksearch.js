@@ -15,18 +15,14 @@ window.initQuickSearch = function initQuickSearch(portletId,seeAllMsg, noResultM
     var isDefault = false;
     var isEnterKey = false;
     window['isSearching'] = false;
-    var durationKeyup = 0;
-    var firstKeyup = 0;
-    var nextKeyup = 0;
-    var skipKeyup = 0;
     var textVal = "";
     var firstBackSpace = true;
     var index = 0;
     var currentFocus = 0;
     var searchTimeout;
-    var delay = 500;
+    var delay = 1000;
     var isLoading = false;
-    var searchTypes;
+    var types;
     var searchPage = "/portal/"+eXo.env.portal.portalName+"/search";
     //var skipKeyUp = [9,16,17,18,19,20,33,34,35,36,37,38,39,40,45,49];
     
@@ -180,7 +176,7 @@ window.initQuickSearch = function initQuickSearch(portletId,seeAllMsg, noResultM
 
     function quickSearch(queryText) {
       setWaitingStatus(true);
-      searchTypes = QUICKSEARCH_SETTING.searchTypes.join(","); //search for the types specified in quick search setting only
+      types = QUICKSEARCH_SETTING.searchTypes.join(","); //search for the types specified in quick search setting only
 
       var searchParams = {
         searchContext: {
@@ -188,7 +184,7 @@ window.initQuickSearch = function initQuickSearch(portletId,seeAllMsg, noResultM
         },
         q: queryText,
         sites: QUICKSEARCH_SETTING.searchCurrentSiteOnly ? eXo.env.portal.portalName : "all",
-        types: searchTypes,
+        types: types,
         offset: 0,
         limit: QUICKSEARCH_SETTING.resultsPerPage,
         sort: "relevancy",
@@ -228,7 +224,7 @@ window.initQuickSearch = function initQuickSearch(portletId,seeAllMsg, noResultM
         $(txtQuickSearchQuery_id).removeClass("loadding");
         setWaitingStatus(false);
         
-        $(seeAll_id).attr("href", searchPage +"?q="+queryText+"&types="+searchTypes); //the query to be passed to main search page
+        $(seeAll_id).attr("href", searchPage +"?q="+queryText+"&types="+types); //the query to be passed to main search page
         currentFocus = 0;
       });
         isLoading = false;
@@ -295,7 +291,7 @@ window.initQuickSearch = function initQuickSearch(portletId,seeAllMsg, noResultM
 
     //*** Event handlers - Quick search ***
     $(document).on("click",seeAll_id, function(){
-      var currentTextQueryHref = searchPage+"?q="+$(txtQuickSearchQuery_id).val()+"&types="+searchTypes;
+      var currentTextQueryHref = searchPage+"?q="+$(txtQuickSearchQuery_id).val()+"&types="+types;
       //Ensure always that correct search query from $(txtQuickSearchQuery_id) is used
       window.location.href = ($(this).attr("href") === currentTextQueryHref) ? $(this).attr("href") : currentTextQueryHref; //open the main search page
       $(quickSearchResult_id).hide();
@@ -434,7 +430,7 @@ window.initQuickSearch = function initQuickSearch(portletId,seeAllMsg, noResultM
     	  }else if (window['isSearching']){    	  	 
           
 	          var query = $(txtQuickSearchQuery_id).val();
-	          searchTypes = QUICKSEARCH_SETTING.searchTypes.join(","); //search for the types specified in quick search setting only
+	          types = QUICKSEARCH_SETTING.searchTypes.join(","); //search for the types specified in quick search setting only
 	
 	          var searchParams = {
 	            searchContext: {
@@ -442,13 +438,13 @@ window.initQuickSearch = function initQuickSearch(portletId,seeAllMsg, noResultM
 	            },
 	            q: query,
 	            sites: QUICKSEARCH_SETTING.searchCurrentSiteOnly ? eXo.env.portal.portalName : "all",
-	            types: searchTypes,
+	            types: types,
 	            offset: 0,
 	            limit: QUICKSEARCH_SETTING.resultsPerPage,
 	            sort: "relevancy",
 	            order: "desc"
 	          };          
-	          $(linkQuickSearchQuery_id).attr("onclick","window.location.href='"+searchPage +"?q="+query+"&types="+searchTypes+"'");
+	          $(linkQuickSearchQuery_id).attr("onclick","window.location.href='"+searchPage +"?q="+query+"&types="+types+"'");
 	          window['isSearching'] = false;
     	  }
       }
