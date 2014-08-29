@@ -121,7 +121,7 @@
   } else {
     if (totalLikesNum > 2) {
       def id = Utils.getIdentityManager().getIdentity(displayedIdentityLikes[0]);
-      labelLikes = labelOneAndOthersLikeThis.replace("{0}", id.profile.fullName).replace("{1}", totalLikesNum + "");
+      labelLikes = labelOneAndOthersLikeThis.replace("{0}", id.profile.fullName).replace("{1}", totalLikesNum - 1 + "");
     } else if (totalLikesNum == 1) {
       def id = Utils.getIdentityManager().getIdentity(displayedIdentityLikes[0]);
       labelLikes = labelOnePersonLikeThis.replace("{0}", id.profile.fullName);
@@ -231,7 +231,6 @@
               </div>
             </div>
             <% def questionTitle = uicomponent.getQuestionTitle();
-               def questionDetail = uicomponent.getQuestionDetail();
             %>
 						<div class="titleAnswer">
 							<a class="linkTitle" href="${uicomponent.getLink()}" title="">$questionTitle</a>
@@ -239,7 +238,7 @@
 					</div>	
 				  <div class="contentAnswer theContent">
 					<div class="clearfix ">
-						<p class="text">$questionDetail</p>	
+						<p class="text">$activity.body</p>	
 					</div>
           <% def numberOfAnswers = uicomponent.getNumberOfAnswers();
              def numberOfComments = uicomponent.getNumberOfComments();
