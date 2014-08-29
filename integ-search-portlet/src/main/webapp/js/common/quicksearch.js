@@ -1,7 +1,7 @@
 (function($){
 // Function to be called when the quick search template is ready
 window.initQuickSearch = function initQuickSearch(portletId,seeAllMsg, noResultMsg, searching) {
-  
+
     //*** Global variables ***
     var CONNECTORS; //all registered SearchService connectors
     var SEARCH_TYPES; //enabled search types
@@ -13,10 +13,8 @@ window.initQuickSearch = function initQuickSearch(portletId,seeAllMsg, noResultM
     var seeAll_id = "#seeAll-" + portletId;
     var value = $(txtQuickSearchQuery_id).val();
     var isDefault = false;
-    var isEnterKey = false;
     window['isSearching'] = false;
     var textVal = "";
-    var firstBackSpace = true;
     var index = 0;
     var currentFocus = 0;
     var searchTimeout;
@@ -25,7 +23,7 @@ window.initQuickSearch = function initQuickSearch(portletId,seeAllMsg, noResultM
     var types;
     var searchPage = "/portal/"+eXo.env.portal.portalName+"/search";
     //var skipKeyUp = [9,16,17,18,19,20,33,34,35,36,37,38,39,40,45,49];
-    
+
     var mapKeyUp = {"0":"48","1":"49","2":"50","3":"51","4":"52","5":"53","6":"54","7":"55","8":"56","9":"57",
     		"a":"65","b":"66","c":"67","d":"68","e":"69","f":"70","g":"71","h":"72","i":"73","j":"74",
     		"k":"75","l":"76","m":"77","n":"78","o":"79","p":"80","q":"81","r":"82","s":"83","t":"84",
@@ -44,17 +42,17 @@ window.initQuickSearch = function initQuickSearch(portletId,seeAllMsg, noResultM
     var QUICKSEARCH_RESULT_TEMPLATE= "\
         <div class='quickSearchResult %{type}' tabindex='%{index}' id='quickSearchResult%{index}'> \
         %{lineResult}\
-      </div>";//<div class='Excerpt Ellipsis'>%{excerpt}</div> \    
-    
+      </div>";//<div class='Excerpt Ellipsis'>%{excerpt}</div> \
+
     var LINE_RESULT_TEMPLATE = "\
         <a href='%{url}'> \
      	<i class='%{cssClass}'></i> %{title}\
      	</a>";
-    
+
     var OTHER_RESULT_TEMPLATE  = "\
 		<a href='%{url}' class='avatarTiny'><img src='%{imageSrc}'/>%{title}</a>\
 		";
-        
+
     var QUICKSEARCH_TABLE_TEMPLATE=" \
           <table class='uiGrid table table-striped  rounded-corners'> \
             <col width='30%'> \
@@ -112,8 +110,8 @@ window.initQuickSearch = function initQuickSearch(portletId,seeAllMsg, noResultM
 
     var TASK_AVATAR_TEMPLATE = " \
       <i class='uiIconStatus-20-%{taskStatus}'></i> \
-    ";  
-    
+    ";
+
     var QUICKSEARCH_WAITING_TEMPLATE=" \
         <table class='uiGrid table  table-hover table-striped  rounded-corners'> \
           <col width='30%'> \
@@ -124,14 +122,14 @@ window.initQuickSearch = function initQuickSearch(portletId,seeAllMsg, noResultM
 	          </td> \
 	        </tr> \
         </table> \
-      ";       
-    
+      ";
+
     //*** Utility functions ***
-    
+
     String.prototype.toProperCase = function() {
         return this.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
       };
-    
+
     // Highlight the specified text in a string
     String.prototype.highlight = function(words) {
       var str = this;
@@ -162,20 +160,19 @@ window.initQuickSearch = function initQuickSearch(portletId,seeAllMsg, noResultM
     		window['isSearching'] = true;
             $(txtQuickSearchQuery_id).addClass("loadding");
             if ($.browser.msie  && parseInt($.browser.version, 10) == 8) {
-            	$(quickSearchResult_id).show();              
+            	$(quickSearchResult_id).show();
             }else{
             	var width = Math.min($(quickSearchResult_id).width(), $(window).width() - $(txtQuickSearchQuery_id).offset().left - 20);
             	$(quickSearchResult_id).width(width);
-            	$(quickSearchResult_id).show();                      	
-            }            
+            	$(quickSearchResult_id).show();
+            }
     	}else {
-    		window['isSearching'] = false;    		
-    	}    	    
-    	
+    		window['isSearching'] = false;
+    	}
+
     }
 
     function quickSearch(queryText) {
-      setWaitingStatus(true);
       types = QUICKSEARCH_SETTING.searchTypes.join(","); //search for the types specified in quick search setting only
 
       var searchParams = {
@@ -190,44 +187,45 @@ window.initQuickSearch = function initQuickSearch(portletId,seeAllMsg, noResultM
         sort: "relevancy",
         order: "desc"
       };
-      
-      
-      
+
+
       // get results of all search types in a map
-      $.getJSON("/rest/search", searchParams, function(resultMap){
+      $.getJSON("/rest/search", searchParams, function (resultMap) {
         var rows = []; //one row per type
         index = 0;
-        $.each(SEARCH_TYPES, function(i, searchType){          
+        $.each(SEARCH_TYPES, function (i, searchType) {
           var results = resultMap[searchType]; //get all results of this type
-          if(results && 0!=$(results).size()) { //show the type with result only        	 
+          if (results && 0 != $(results).size()) { //show the type with result only
             //results.map(function(result){result.type = searchType;}); //assign type for each result
-            $.map(results, function(result){result.type = searchType;}); //assign type for each result
+            $.map(results, function (result) {
+              result.type = searchType;
+            }); //assign type for each result
             var cell = []; //the cell contains results of this type (in the quick search result table)
-            $.each(results, function(i, result){
-              index = index + 1; 	
+            $.each(results, function (i, result) {
+              index = index + 1;
               cell.push(renderQuickSearchResult(result, index)); //add this result to the cell
             });
             var row = QUICKSEARCH_TABLE_ROW_TEMPLATE.replace(/%{type}/g, CONNECTORS[searchType].displayName).replace(/%{results}/g, cell.join(""));
             rows.push(row);
           }
         });
-                        
-        var messageRow = rows.length==0 ? QUICKSEARCH_NO_RESULT.replace(/%{query}/, XSSUtils.sanitizeString(queryText)) : QUICKSEARCH_SEE_ALL;
+
+        var messageRow = rows.length == 0 ? QUICKSEARCH_NO_RESULT.replace(/%{query}/, XSSUtils.sanitizeString(queryText)) : QUICKSEARCH_SEE_ALL;
         $(quickSearchResult_id).html(QUICKSEARCH_TABLE_TEMPLATE.replace(/%{resultRows}/, rows.join("")).replace(/%{messageRow}/g, messageRow));
-        if ($.browser.msie  && parseInt($.browser.version, 10) == 8) {
-        	$(quickSearchResult_id).show();              
-        }else{
-        	var width = Math.min($(quickSearchResult_id).width(), $(window).width() - $(txtQuickSearchQuery_id).offset().left - 20);
-        	$(quickSearchResult_id).width(width);
-        	$(quickSearchResult_id).show();                      	
-        }              
+        if ($.browser.msie && parseInt($.browser.version, 10) == 8) {
+          $(quickSearchResult_id).show();
+        } else {
+          var width = Math.min($(quickSearchResult_id).width(), $(window).width() - $(txtQuickSearchQuery_id).offset().left - 20);
+          $(quickSearchResult_id).width(width);
+          $(quickSearchResult_id).show();
+        }
         $(txtQuickSearchQuery_id).removeClass("loadding");
         setWaitingStatus(false);
-        
-        $(seeAll_id).attr("href", searchPage +"?q="+queryText+"&types="+types); //the query to be passed to main search page
+
+        $(seeAll_id).attr("href", searchPage + "?q=" + queryText + "&types=" + types); //the query to be passed to main search page
         currentFocus = 0;
       });
-        isLoading = false;
+      isLoading = false;
     }
 
 
@@ -238,13 +236,13 @@ window.initQuickSearch = function initQuickSearch(portletId,seeAllMsg, noResultM
       var line = "";
 
       switch(result.type) {
-        case "event":          
-	    	line = LINE_RESULT_TEMPLATE.replace(/%{cssClass}/g, "uiIconPLFEvent uiIconPLFLightGray");	
+        case "event":
+	    	line = LINE_RESULT_TEMPLATE.replace(/%{cssClass}/g, "uiIconPLFEvent uiIconPLFLightGray");
           break;
 
         case "task":
         	var cssClass = "uiIconPLFTask" + result.taskStatus.toProperCase() + " uiIconPLFLightGray";
-	    	line = LINE_RESULT_TEMPLATE.replace(/%{cssClass}/g, cssClass);	
+	    	line = LINE_RESULT_TEMPLATE.replace(/%{cssClass}/g, cssClass);
           break;
 
         case "file":
@@ -257,20 +255,20 @@ window.initQuickSearch = function initQuickSearch(portletId,seeAllMsg, noResultM
           break;
 
         case "post":
-        	line = LINE_RESULT_TEMPLATE.replace(/%{cssClass}/g, "uiIconPLFDiscussion uiIconPLFLightGray");	
+        	line = LINE_RESULT_TEMPLATE.replace(/%{cssClass}/g, "uiIconPLFDiscussion uiIconPLFLightGray");
           break;
 
         case "answer":
-        	line = LINE_RESULT_TEMPLATE.replace(/%{cssClass}/g, "uiIconPLFAnswers uiIconPLFLightGray");	      
+        	line = LINE_RESULT_TEMPLATE.replace(/%{cssClass}/g, "uiIconPLFAnswers uiIconPLFLightGray");
           break;
-        case "wiki":        	
-        	line = LINE_RESULT_TEMPLATE.replace(/%{cssClass}/g, "uiIconWikiWiki uiIconWikiLightGray");	      
+        case "wiki":
+        	line = LINE_RESULT_TEMPLATE.replace(/%{cssClass}/g, "uiIconWikiWiki uiIconWikiLightGray");
             break;
         case "page":
         	line = LINE_RESULT_TEMPLATE.replace(/%{cssClass}/g, "uiIconEcmsTemplateDocument uiIconEcmsLightGrey");
-            break;        	
-        default: 
-            line = OTHER_RESULT_TEMPLATE.replace(/%{imageSrc}/g, result.imageUrl);        	
+            break;
+        default:
+            line = OTHER_RESULT_TEMPLATE.replace(/%{imageSrc}/g, result.imageUrl);
 
       }
 
@@ -298,35 +296,38 @@ window.initQuickSearch = function initQuickSearch(portletId,seeAllMsg, noResultM
     });
 
     function reloadSearch(query, event){
-
-      if (!charDeletedIsEmpty(event, textVal, query)){
-        //Check if there is already a search action fired
-        if (!isLoading){
-          //No search until the word length is 2 characters up
-          if ((query.length >= 2)){
-            $.each(mapKeyUp, function(key, value){
-              if ((value == event.keyCode)){
-                //Call search action within a timeout delay to ensure whole wold is searched when user stops typing
-                searchTimeout = setTimeout(function() {
-                  isLoading = true;
-                  quickSearch(query); //search for the text just being typed in
-                }, delay);
-              }
-            });
-          }
+      if (!charDeletedIsEmpty(event, textVal, query)) {
+        //No search is performed unless: No other search is performed
+        if (!isLoading) {
+          setWaitingStatus(true);
+          $.each(mapKeyUp, function (key, value) {
+            if ((value == event.keyCode)) {
+              //Call search action within a timeout delay to ensure whole wold is searched when user stops typing
+              searchTimeout = setTimeout(function () {
+                isLoading = true;
+                quickSearch(query); //search for the text just being typed in
+              }, delay);
+            }
+          });
         }
+      }
+      else { //Should remove the waiting status when we delete a word with 1 or 0 characters
+        setWaitingStatus(false);
+        $(quickSearchResult_id).hide();
       }
     }
 
-    $(txtQuickSearchQuery_id).keyup(function(e){
+    $(txtQuickSearchQuery_id).keyup(function (e) {
       var queryText = $(this).val();
-      if(13==e.keyCode) {
+      if (13 == e.keyCode) {
         e.preventDefault();
+        //Clear the timeout since this action should be done immediately
+        if (searchTimeout) {
+          clearTimeout(searchTimeout);
+        }
         $(seeAll_id).trigger("click");//go to main search page if Enter is pressed
-        return;
-      } else if("" == queryText) {
+      } else if ("" == queryText) {
         $(quickSearchResult_id).hide();
-        return;
       } else {
         if (searchTimeout) {
           //Clear the timeout if is has been set by another search operation
@@ -335,7 +336,7 @@ window.initQuickSearch = function initQuickSearch(portletId,seeAllMsg, noResultM
         reloadSearch(queryText, e);
       }
     });
-    
+
     //skip backspace and delete key
     function charDeletedIsEmpty(key,textVal, currentVal){
     	//process backspace key
@@ -345,70 +346,71 @@ window.initQuickSearch = function initQuickSearch(portletId,seeAllMsg, noResultM
     	//process delete key
     	if (key.keyCode == 46 && textVal.trim() == currentVal.trim()){
 			return true;
-    	}    	
+    	}
+        return false;
     }
     // catch ennter key when search is running
     $(document).keyup(function (e) {
       if (e.keyCode == 13 && window['isSearching'] && !$(txtQuickSearchQuery_id).is(':hidden') ) {
     	  //$(quickSearchResult_id).focus();
           isDefault = false;
-          $(linkQuickSearchQuery_id).trigger('click');    	  
+          $(linkQuickSearchQuery_id).trigger('click');
     	  //$(linkQuickSearchQuery_id).click(); //go to main search page if Enter is pressed
       }
-    });     
-    
+    });
+
     $(document).keyup(function (e) {
     	if (e.keyCode == 13 && !$(txtQuickSearchQuery_id).is(':hidden') ) {
     		var focusedId = $("*:focus").attr("id");
-    		if (currentFocus > 0 && currentFocus <= index){    			
+    		if (currentFocus > 0 && currentFocus <= index){
     			var link = $("#"+focusedId+" .name").attr('href');
     			window.open(link,"_self");
     		}
     	}
     });
-    
+
     // catch arrow key
     $(document).keyup(function (e) {
   	  if (index >= 1){
 
-    	if (e.keyCode == 40 && !$(txtQuickSearchQuery_id).is(':hidden') ) {    		
+    	if (e.keyCode == 40 && !$(txtQuickSearchQuery_id).is(':hidden') ) {
 
     	  if (currentFocus >= 1 && currentFocus < index){
     		  var divClass = $('#quickSearchResult'+ currentFocus).attr('class').replace(" arrowResult", "");
-    		  
+
     		  $('#quickSearchResult'+currentFocus).attr('class',divClass);
     	  }
-    	  
+
     	  if (currentFocus < index){
 	    	  currentFocus = currentFocus + 1;
 	    	  $("#quickSearchResult"+currentFocus).focus();
 	    	  var divClass = $('#quickSearchResult'+currentFocus).attr('class') + " arrowResult";
-	    	  $('#quickSearchResult'+currentFocus).attr('class',divClass);	    	  
+	    	  $('#quickSearchResult'+currentFocus).attr('class',divClass);
     	  }else if (currentFocus == index){
 	    	  $("#quickSearchResult"+index).focus();
     	  }
       }
-      
+
       if (e.keyCode == 38 && !$(txtQuickSearchQuery_id).is(':hidden') ) {
 
     	  if (currentFocus > 1){
     		  var divClass = $('#quickSearchResult'+ currentFocus).attr('class').replace(" arrowResult", "");
-    		  
+
     		  $('#quickSearchResult'+currentFocus).attr('class',divClass);
     	  }
-    	  
+
     	  if (currentFocus > 1){
 	    	  currentFocus = currentFocus - 1;
 	    	  $("#quickSearchResult"+currentFocus).focus();
 	    	  var divClass = $('#quickSearchResult'+currentFocus).attr('class') + " arrowResult";
-	    	  $('#quickSearchResult'+currentFocus).attr('class',divClass);	    	  
+	    	  $('#quickSearchResult'+currentFocus).attr('class',divClass);
     	  }else if (currentFocus == 1){
     		  $("#quickSearchResult"+currentFocus).focus();
     	  }
-      }      
+      }
   	  }
-    });     
-    
+    });
+
     //show the input search or go to the main search page when search link is clicked
     $(linkQuickSearchQuery_id).click(function () {
       if ($(txtQuickSearchQuery_id).is(':hidden')) {
@@ -421,17 +423,17 @@ window.initQuickSearch = function initQuickSearch(portletId,seeAllMsg, noResultM
       else
       if (isDefault == true) {
           $(txtQuickSearchQuery_id).hide();
-          $(quickSearchResult_id).hide();          
+          $(quickSearchResult_id).hide();
       }
       else {
     	  //alert(window['isSearching']);
-    	  if(!window['isSearching']) {      
+    	  if(!window['isSearching']) {
     		  $(seeAll_id).click(); //go to main search page if Enter is pressed
-    	  }else if (window['isSearching']){    	  	 
-          
+    	  }else if (window['isSearching']){
+
 	          var query = $(txtQuickSearchQuery_id).val();
 	          types = QUICKSEARCH_SETTING.searchTypes.join(","); //search for the types specified in quick search setting only
-	
+
 	          var searchParams = {
 	            searchContext: {
 	              siteName:eXo.env.portal.portalName
@@ -443,25 +445,25 @@ window.initQuickSearch = function initQuickSearch(portletId,seeAllMsg, noResultM
 	            limit: QUICKSEARCH_SETTING.resultsPerPage,
 	            sort: "relevancy",
 	            order: "desc"
-	          };          
+	          };
 	          $(linkQuickSearchQuery_id).attr("onclick","window.location.href='"+searchPage +"?q="+query+"&types="+types+"'");
 	          window['isSearching'] = false;
     	  }
       }
-    });       
+    });
 
     $(txtQuickSearchQuery_id).focus(function(){
       $(this).val('');
       $(this).css('color', '#000');
       isDefault = false;
     });
-    
+
 
     //collapse the input search field when clicking outside the search box
     $('body').click(function (evt) {
       if ($(evt.target).parents('#ToolBarSearch').length == 0) {
         $(txtQuickSearchQuery_id).hide();
-        $(quickSearchResult_id).hide();        
+        $(quickSearchResult_id).hide();
       }
     });
 
@@ -482,8 +484,8 @@ window.initQuickSearch = function initQuickSearch(portletId,seeAllMsg, noResultM
 
 
 //Function to be called when the quick search setting template is ready
-window.initQuickSearchSetting = function(allMsg,alertOk,alertNotOk){  
-  
+window.initQuickSearchSetting = function(allMsg,alertOk,alertNotOk){
+
     var CONNECTORS; //all registered SearchService connectors
     var CHECKBOX_TEMPLATE = "\
       <div class='control-group'> \
